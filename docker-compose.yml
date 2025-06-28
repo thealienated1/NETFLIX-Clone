@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  netflix-clone:
+    build:
+      context: .
+      args:
+        TMDB_V3_API_KEY: ${TMDB_V3_API_KEY}
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_APP_API_ENDPOINT_URL=https://api.themoviedb.org/3
+      - VITE_APP_TMDB_V3_API_KEY=${TMDB_V3_API_KEY}
+    restart: unless-stopped 

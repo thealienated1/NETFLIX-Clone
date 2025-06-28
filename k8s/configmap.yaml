@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: netflix-clone-config
+  namespace: netflix-clone
+data:
+  VITE_APP_API_ENDPOINT_URL: "https://api.themoviedb.org/3"
+  NODE_ENV: "production" 
