@@ -5,10 +5,21 @@ services:
     build:
       context: .
       args:
-        TMDB_V3_API_KEY: ${TMDB_V3_API_KEY}
+        VITE_APP_API_ENDPOINT_URL: ${VITE_APP_API_ENDPOINT_URL}
+        VITE_APP_TMDB_V3_API_KEY: ${VITE_APP_TMDB_V3_API_KEY}
+        NODE_ENV: ${NODE_ENV:-production}
     ports:
       - "3000:80"
     environment:
-      - VITE_APP_API_ENDPOINT_URL=https://api.themoviedb.org/3
-      - VITE_APP_TMDB_V3_API_KEY=${TMDB_V3_API_KEY}
-    restart: unless-stopped 
+      - VITE_APP_API_ENDPOINT_URL=${VITE_APP_API_ENDPOINT_URL:-https://api.themoviedb.org/3}
+      - VITE_APP_TMDB_V3_API_KEY=${VITE_APP_TMDB_V3_API_KEY}
+      - NODE_ENV=${NODE_ENV:-production}
+    env_file:
+      - .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health.json"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s 
