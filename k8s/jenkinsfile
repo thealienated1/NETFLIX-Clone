@@ -1,0 +1,126 @@
+pipeline {
+    agent any
+    
+    environment {
+        DOCKER_IMAGE = 'netflix-clone'
+        DOCKER_TAG = "${BUILD_NUMBER}"
+        DOCKER_REGISTRY = 'docker.io' // Not used in push but kept for clarity
+        DOCKER_REPO = 'thealienated1/netflix-clone'
+        DOCKER_CREDENTIALS = 'docker_credential'
+    }
+    
+    stages {
+        stage('Clone Repository') {
+            steps {
+                git branch: 'main',
+                    credentialsId: 'git-credential',
+                    url: 'https://github.com/thealienated1/NETFLIX-Clone.git'
+            }
+        }
+        stage('Setup Environment') {
+            steps {
+                sh '''
+                    echo "Original PATH: $PATH"
+                    export PATH=$PATH:/usr/local/bin:/usr/bin:/snap/bin
+                    which node || { echo "Node.js not found"; exit 1; }
+                    node -v || { echo "Node.js not functional"; exit 1; }
+                    which npm || { echo "npm not found"; exit 1; }
+                    npm -v || { echo "npm not functional"; exit 1; }
+                    which docker || { echo "Docker not found in PATH"; exit 1; }
+                    docker --version || { echo "Docker not running or not installed"; exit 1; }
+                    docker info --format '{{.ServerVersion}}' || { echo "Docker daemon not accessible"; exit 1; }
+                    echo "Final PATH: $PATH"
+                '''
+            }
+        }
+        stage('Verify Workspace') {
+            steps {
+                sh '''
+                    export PATH=$PATH:/usr/local/bin:/usr/bin:/snap/bin
+                    echo "Workspace contents:"
+                    ls -la
+                    if [ ! -f package.json ]; then
+                        echo "Error: package.json not found"
+                        exit 1
+                    fi
+                    if [ ! -f Dockerfile ]; then
+                        echo "Error: Dockerfile not found"
+                        exit 1
+                    fi
+                '''
+            }
+        }
+        stage('Install Dependencies') {
+            steps {
+                sh '''
+                    export PATH=$PATH:/usr/local/bin:/usr/bin:/snap/bin
+                    npm install --verbose
+                '''
+            }
+        }
+        stage('Test') {
+            steps {
+                sh '''
+                    export PATH=$PATH:/usr/local/bin:/usr/bin:/snap/bin
+                    if grep -q '"test":' package.json; then
+                        npm test --verbose
+                    else
+                        echo "No test script found in package.json, skipping tests"
+                    fi
+                '''
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    withEnv(["PATH+EXTRA=/usr/local/bin:/usr/bin:/snap/bin"]) {
+                        def dockerImage = docker.build("${DOCKER_REPO}:${DOCKER_TAG}", ".")
+                        sh "docker tag ${DOCKER_REPO}:${DOCKER_TAG} ${DOCKER_REPO}:latest"
+                    }
+                }
+            }
+        }
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    withEnv(["PATH+EXTRA=/usr/local/bin:/usr/bin:/snap/bin"]) {
+                        withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS}", usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                            sh '''
+                                echo "Logging in to Docker Hub as $DOCKER_USERNAME"
+                                echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin || { echo 'Docker login failed'; exit 1; }
+                                echo "Pushing ${DOCKER_REPO}:${DOCKER_TAG}"
+                                docker push ${DOCKER_REPO}:${DOCKER_TAG} || { echo 'Failed to push ${DOCKER_REPO}:${DOCKER_TAG}'; exit 1; }
+                                echo "Pushing ${DOCKER_REPO}:latest"
+                                docker push ${DOCKER_REPO}:latest || { echo 'Failed to push ${DOCKER_REPO}:latest'; exit 1; }
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+        stage('Clean Up') {
+            steps {
+                sh '''
+                    export PATH=$PATH:/usr/local/bin:/usr/bin:/snap/bin
+                    docker rmi ${DOCKER_REPO}:${DOCKER_TAG} || true
+                    docker rmi ${DOCKER_REPO}:latest || true
+                    docker image prune -f || true
+                '''
+            }
+        }
+    }
+    
+    post {
+        always {
+            cleanWs()
+        }
+        success {
+            echo "Pipeline completed successfully!"
+            echo "Docker image pushed: ${DOCKER_REPO}:${DOCKER_TAG}"
+            echo "Latest image: ${DOCKER_REPO}:latest"
+        }
+        failure {
+            echo "Pipeline failed!"
+        }
+    }
+}
