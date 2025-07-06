@@ -1,17 +1,5 @@
 import '@testing-library/jest-dom';
 
-// Mock Vite environment variables
-Object.defineProperty(global, 'import', {
-  value: {
-    meta: {
-      env: {
-        VITE_APP_API_ENDPOINT_URL: 'https://api.themoviedb.org/3',
-        VITE_APP_TMDB_V3_API_KEY: 'test-api-key',
-      },
-    },
-  },
-});
-
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,

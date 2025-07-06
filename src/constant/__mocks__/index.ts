@@ -1,8 +1,8 @@
 import { CustomGenre } from "src/types/Genre";
 
-// Environment variables - direct access for Vite build-time injection
-export const API_ENDPOINT_URL = import.meta.env.VITE_APP_API_ENDPOINT_URL || 'https://api.themoviedb.org/3';
-export const TMDB_V3_API_KEY = import.meta.env.VITE_APP_TMDB_V3_API_KEY || 'test-api-key';
+// Mock environment variables for Jest tests
+export const API_ENDPOINT_URL = 'https://api.themoviedb.org/3';
+export const TMDB_V3_API_KEY = 'test-api-key';
 
 export const MAIN_PATH = {
   root: "",
@@ -26,4 +26,4 @@ export const INITIAL_DETAIL_STATE = {
   id: undefined,
   mediaType: undefined,
   mediaDetail: undefined,
-};
+}; 

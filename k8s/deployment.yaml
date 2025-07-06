@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: netflix-clone
-        image: your-registry-url/netflix-clone:latest
+        image: thealienated1/netflix-clone:latest
         ports:
         - containerPort: 80
         env:
@@ -38,11 +38,11 @@ spec:
               key: NODE_ENV
         resources:
           requests:
-            memory: "64Mi"
-            cpu: "50m"
-          limits:
             memory: "128Mi"
             cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
         livenessProbe:
           httpGet:
             path: /
@@ -54,6 +54,4 @@ spec:
             path: /
             port: 80
           initialDelaySeconds: 5
-          periodSeconds: 5
-      imagePullSecrets:
-      - name: registry-secret 
+          periodSeconds: 5 

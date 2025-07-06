@@ -1,4 +1,4 @@
-import { API_ENDPOINT_URL, TMDB_V3_API_KEY, MAIN_PATH, COMMON_TITLES } from '../index';
+import { API_ENDPOINT_URL, TMDB_V3_API_KEY, MAIN_PATH, COMMON_TITLES } from '../__mocks__/index';
 
 describe('Constants', () => {
   test('API_ENDPOINT_URL is defined', () => {

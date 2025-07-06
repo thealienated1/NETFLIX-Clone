@@ -2,12 +2,19 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
+  setupFiles: ['<rootDir>/jest.setup.js'],
   moduleNameMapper: {
+    '^src/constant$': '<rootDir>/src/constant/__mocks__/index.ts',
+    '^src/constant/index$': '<rootDir>/src/constant/__mocks__/index.ts',
     '^src/(.*)$': '<rootDir>/src/$1',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
   transform: {
-    '^.+\\.(ts|tsx)$': 'ts-jest',
+    '^.+\\.(ts|tsx)$': ['ts-jest', {
+      tsconfig: {
+        jsx: 'react-jsx',
+      },
+    }],
   },
   moduleDirectories: ['node_modules', 'src'],
   testMatch: [
@@ -27,5 +34,8 @@ module.exports = {
       lines: 70,
       statements: 70
     }
-  }
+  },
+  transformIgnorePatterns: [
+    'node_modules/(?!(.*\\.mjs$))'
+  ]
 }; 
